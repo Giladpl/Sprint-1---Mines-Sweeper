@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Mines-Sweep Game- Sprint 1</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body onload="init(gLevel[0].SIZE, gLevel[0].MINES)">
+  <div class="level-buttons">
+    <button onclick="init(gLevel[0].SIZE, gLevel[0].MINES)">Easy</button>
+    <button onclick="init(gLevel[1].SIZE, gLevel[1].MINES)">Medium</button>
+    <button onclick="init(gLevel[2].SIZE, gLevel[2].MINES)">Hard</button> 
+  </div>
+  <div><button onclick="resetGame()" class="reset">Reset Game</button></div>
+
+  <table class="">
+    <tbody class="mines-field">
+    </tbody>
+  </table>
+  <div class="timer">Time Passed:<span class="min"></span> <span class="sec"> </span></div>
+
+  <!-- <button data-i="" data-j="" onclick="leftClickCell(this)"></button> -->
+
+  <script src="js/utils.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>

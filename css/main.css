@@ -1,0 +1,33 @@
+body {
+    background:white;
+    /* color: black; */
+}
+  
+.mines-field {
+    padding-top: 60px;
+    width: 600px;
+    margin: auto;
+    background-color: grey;
+}
+
+table {
+    border-collapse:separate;
+    border-spacing: 5px;
+}
+
+.cell {
+    width: 35px;
+    height: 35px;
+    text-align: center;
+    /* border-radius: 7px; */
+    /* border: 1px solid gray; */
+    cursor: pointer;
+}
+
+.hidden {
+
+}
+
+.revealed {
+    background-color: #b3b0b0;
+}
