@@ -69,13 +69,9 @@ function setMinesNegsCount(board) {
 		for (var j = 0; j < board[0].length; j++) {
 			var currCell = board[i][j];
 			negMines = checkMinesNegsCount(board, i, j);
-			console.log(negMines);
-			
-			if(!negMines.negCount){
-				currCell.minesAroundCount = negMines.negCount;
-				currCell.minesAroundLocations = negMines.posNegMines;
-				negMines = null;
-			}
+			currCell.minesAroundCount = negMines.negCount;
+			currCell.minesAroundLocations = negMines.posNegMines;
+			negMines = null;
 		}
 	}
 }
