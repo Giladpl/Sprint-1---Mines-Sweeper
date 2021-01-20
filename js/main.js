@@ -49,9 +49,9 @@ function renderBoard(board) {
 		strHTML += `<tr class="field-row" >`;
 		for (var j = 0; j < board[0].length; j++) {
 			var cell = board[i][j];
-			var className = 'hidden';
 			var cellContent = EMPTY;
-			if (cell.isMine) className = 'mine';
+			if (cell.isMine) var className = 'mine';
+			else var className = `negCount-${cell.minesAroundCount}`
 			strHTML += `\t<td class="cell ${className}" 
 															onmousedown="cellClicked(this, event, ${i}, ${j})" >${cellContent}</td>\n`;
 		}
@@ -69,8 +69,10 @@ function setMinesNegsCount(board) {
 		for (var j = 0; j < board[0].length; j++) {
 			var currCell = board[i][j];
 			negMines = checkMinesNegsCount(board, i, j);
-			currCell.minesAroundCount = negMines.negCount;
-			currCell.minesAroundLocations = negMines.posNegMines;
+			if(negMines.negCount){
+				currCell.minesAroundCount = negMines.negCount;
+				currCell.minesAroundLocations = negMines.posNegMines;
+			}
 			negMines = null;
 		}
 	}
@@ -126,6 +128,7 @@ function cellClicked(elCell, event, i, j) {
 		//revealing cell's content
 		if (currCell.isMine) {
 			elCell.innerText = MINE;
+			setTimeout(gameOver, 1500);
 		} else {
 			elCell.innerText = currCell.minesAroundCount;
 			elCell.classList.add('revealed');
@@ -160,9 +163,22 @@ function disableRightClick() {
 	);
 }
 
-function gameOver() {}
+function gameOver() {
+	document.querySelector('.modal').classList.remove('hidden')
+	document.querySelector('.overlay').classList.remove('hidden')
+}
 
 function resetGame() {
 	clearInterval(gTimerInterval);
 	gTimerInterval = null;
 }
+function checkGameOver(){};
+
+function expandShown(board, elCell, i, j){
+	var currCell = board[i][j];
+	if(!currCell.minesAroundCount) console.log('test');
+	
+	
+}
+
+function cellMarked(elCell){};

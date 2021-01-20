@@ -1,6 +1,5 @@
 body {
-    background:white;
-    /* color: black; */
+    background:rgb(20, 239, 247);
 }
   
 .mines-field {
@@ -11,8 +10,11 @@ body {
 }
 
 table {
+    text-align: center;
     border-collapse:separate;
     border-spacing: 5px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .cell {
@@ -24,10 +26,86 @@ table {
     cursor: pointer;
 }
 
-.hidden {
 
+.mine {
+    background-color: grey;
+}
+
+.negCount-0 {
+    background-color: grey;
+}
+
+.negCount-1 {
+    color: blue;
+    font-weight: bold;
+}
+
+.negCount-2 {
+    color: green;
+    font-weight: bold;
+}
+
+.negCount-3 {
+    color: red;
+    font-weight: bold;
+}
+
+.negCount-4 {
+    color: darkblue;
+    font-weight: bold;
+}
+
+.negCount-5 {
+    color:greenyellow;
+    font-weight: bold;
+}
+.negCount-6 {
+    color:darkcyan;
+    font-weight: bold;
+}
+.negCount-7 {
+    color: brown;
+    font-weight: bold;
+}
+.negCount-8 {
+    color: black;
+    font-weight: bold;
 }
 
 .revealed {
-    background-color: #b3b0b0;
+    background-color: rgb(175, 169, 169);
+}
+
+
+/* CLASSES TO MAKE MODAL WORK */
+.hidden {
+	display: none;
+}
+
+.modal {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 70%;
+	background-color: rgb(58, 54, 54);
+	padding: 6rem;
+	border-radius: 5px;
+	box-shadow: 0 3rem 5rem rgba(0, 0, 0, 0.3);
+	z-index: 10;
+}
+
+.overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(3px);
+	z-index: 5;
+}
+
+.modal p, .modal h1 {
+	text-align: center;
 }
