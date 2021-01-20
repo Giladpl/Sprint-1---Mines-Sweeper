@@ -7,26 +7,28 @@ const EMPTY = ' ';
 
 var gBoard;
 var gIsFirst = true;
-var gTimerInterval = null;
 var gSeconds = 0;
+var gLevelPlayed;
+var gGameInterval;
 var gLevel = [
 	{ SIZE: 4, MINES: 2 },
 	{ SIZE: 8, MINES: 12 },
 	{ SIZE: 12, MINES: 30 },
 ];
-var gGame = { isOn: false, shownCount: 0, flaggedCount: 0, secsPassed: 0 };
+var gGame = { isOn: true, shownCount: 0, flaggedCount: 0, secsPassed: 0 };
 
-function init(size, mines) {
-	gBoard = buildBoard(size);
-	setRandomMines(gBoard, size, mines);
+function init(level) {
+	gLevelPlayed = level;
+	gBoard = buildBoard(gLevelPlayed);
+	setRandomMines(gBoard, gLevelPlayed);
 	setMinesNegsCount(gBoard);
 	renderBoard(gBoard);
 	disableRightClick();
 }
 
-function buildBoard(size) {
+function buildBoard(level) {
 	var playBoard = [];
-
+	var size = gLevel[level].SIZE;
 	for (var i = 0; i < size; i++) {
 		playBoard[i] = [];
 		for (var j = 0; j < size; j++) {
@@ -51,8 +53,8 @@ function renderBoard(board) {
 			var cell = board[i][j];
 			var cellContent = EMPTY;
 			if (cell.isMine) var className = 'mine';
-			else var className = `negCount-${cell.minesAroundCount}`
-			strHTML += `\t<td class="cell ${className}" 
+			else var className = `negCount-${cell.minesAroundCount}`;
+			strHTML += `\t<td data-i="${i}" data-j="${j}" class="cell ${className}" 
 															onmousedown="cellClicked(this, event, ${i}, ${j})" >${cellContent}</td>\n`;
 		}
 		strHTML += `</tr>`;
@@ -69,7 +71,7 @@ function setMinesNegsCount(board) {
 		for (var j = 0; j < board[0].length; j++) {
 			var currCell = board[i][j];
 			negMines = checkMinesNegsCount(board, i, j);
-			if(negMines.negCount){
+			if (negMines.negCount) {
 				currCell.minesAroundCount = negMines.negCount;
 				currCell.minesAroundLocations = negMines.posNegMines;
 			}
@@ -95,8 +97,10 @@ function checkMinesNegsCount(board, rowIdx, colIdx) {
 	return { negCount, posNegMines };
 }
 
-function setRandomMines(board, size, minesNum) {
+function setRandomMines(board, level) {
 	var minesLocations = [];
+	var size = gLevel[level].SIZE;
+	var minesNum = gLevel[level].MINES;
 	for (var i = 0; i < minesNum; i++) {
 		var iPos = getRandomIntInclusive(0, size - 1);
 		var jPos = getRandomIntInclusive(0, size - 1);
@@ -107,10 +111,9 @@ function setRandomMines(board, size, minesNum) {
 }
 
 function cellClicked(elCell, event, i, j) {
-	// if(event.button === 0) console.log('left clicked');
-	// if(event.button === 2) console.log('right clicked');
+	if (!gGame.isOn) return;
 	if (gIsFirst) {
-		gTimerInterval = setInterval(setTime, 1000); //add support for left click start
+		gGameInterval = setInterval(setTime, 1000);
 		gIsFirst = !gIsFirst;
 	} else gIsFirst = false;
 
@@ -119,28 +122,41 @@ function cellClicked(elCell, event, i, j) {
 
 	if (event.button === 2 && !currCell.isShown) {
 		//left mouse clicked
-		elCell.classList.toggle('flagged');
-		currCell.isMarked = !currCell.isMarked;
-		elCell.innerText = currCell.isMarked ? FLAG : EMPTY;
+		cellMarked(elCell, currCell);
 	} else {
 		//right mouse clicked
 		currCell.isShown = true;
-		//revealing cell's content
 		if (currCell.isMine) {
+			gGame.isOn = false;
 			elCell.innerText = MINE;
-			setTimeout(gameOver, 1500);
+			setTimeout(gameOver, 1500, 0);
 		} else {
 			elCell.innerText = currCell.minesAroundCount;
 			elCell.classList.add('revealed');
+			gGame.shownCount++;
+			expandShown(gBoard, i, j);
+			if (
+				gGame.flaggedCount === gLevel[gLevelPlayed].MINES &&
+				Math.pow(gLevel[gLevelPlayed].SIZE, 2) -
+					gLevel[gLevelPlayed].MINES ===
+					gGame.shownCount
+			)
+				gameOver(1);
 		}
 	}
 }
+function cellMarked(elCell, currCell) {
+	elCell.classList.toggle('flagged');
+	currCell.isMarked = !currCell.isMarked;
+	elCell.innerText = currCell.isMarked ? FLAG : EMPTY;
+	if (currCell.isMine) gGame.flaggedCount++;
+}
 
 function setTime() {
-	++gSeconds;
-	document.querySelector('.sec').innerText = padTime(gSeconds % 60);
+	gGame.secsPassed++;
+	document.querySelector('.sec').innerText = padTime(gGame.secsPassed % 60);
 	document.querySelector('.min').innerText = ` ${padTime(
-		parseInt(gSeconds / 60)
+		parseInt(gGame.secsPassed / 60)
 	)} :`;
 }
 
@@ -163,22 +179,48 @@ function disableRightClick() {
 	);
 }
 
-function gameOver() {
-	document.querySelector('.modal').classList.remove('hidden')
-	document.querySelector('.overlay').classList.remove('hidden')
+function gameOver(reason) {
+	var elSpan = document.querySelector('.gameOver-msg');
+	if (!reason)
+		elSpan.innerText = `Damn, you stepped on a 💩! Would you like to play another round?`;
+	else
+		elSpan.innerText = `Good job, you've made it! 🎉 Maybe try the harder version?`;
+	document.querySelector('.modal').classList.remove('hidden');
+	document.querySelector('.overlay').classList.remove('hidden');
+	clearInterval(gGameInterval);
+
 }
 
 function resetGame() {
-	clearInterval(gTimerInterval);
-	gTimerInterval = null;
+	gGame.secsPassed = 0;
+	gIsFirst = true;
+	document.querySelector('.timer').innerHTML =
+		'Time Passed:<span class="min"></span> <span class="sec"> </span>';
+	init(gLevelPlayed);
+	document.querySelector('.modal').classList.add('hidden');
+	document.querySelector('.overlay').classList.add('hidden');
+	gGame.shownCount = 0;
+	gGame.isOn = true;
 }
-function checkGameOver(){};
+function checkGameOver() {}
 
-function expandShown(board, elCell, i, j){
-	var currCell = board[i][j];
-	if(!currCell.minesAroundCount) console.log('test');
-	
-	
+//Still need to perfect- violating DRY principle big time
+function expandShown(board, rowIdx, colIdx) {
+	var currCell = board[rowIdx][colIdx];
+	if (!currCell.minesAroundCount)
+		for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
+			if (i < 0 || i > board.length - 1) continue;
+			for (var j = colIdx - 1; j <= colIdx + 1; j++) {
+				var currCell = board[i][j];
+				if (j < 0 || j > board[0].length - 1) continue;
+				if (i === rowIdx && j === colIdx) continue;
+				if (currCell.isMine) continue;
+				var elNegCell = document.querySelector(
+					`[data-i="${i}"][data-j="${j}"]`
+				);
+				elNegCell.classList.add('revealed');
+				elNegCell.innerText = currCell.minesAroundCount;
+				gGame.shownCount++;
+			}
+		}
 }
-
-function cellMarked(elCell){};

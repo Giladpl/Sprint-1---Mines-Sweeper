@@ -9,13 +9,13 @@
   <link rel="stylesheet" href="css/main.css">
 </head>
 
-<body onload="init(gLevel[0].SIZE, gLevel[0].MINES)">
+<body onload="init(0)">
   <div class="level-buttons">
-    <button onclick="init(gLevel[0].SIZE, gLevel[0].MINES)">Easy</button>
-    <button onclick="init(gLevel[1].SIZE, gLevel[1].MINES)">Medium</button>
-    <button onclick="init(gLevel[2].SIZE, gLevel[2].MINES)">Hard</button> 
+    <button onclick="init(0)">Easy</button>
+    <button onclick="init(1)">Medium</button>
+    <button onclick="init(2)">Hard</button> 
   </div>
-  <div><button onclick="resetGame()" class="reset">Reset Game</button></div>
+  <!-- <div><button onclick="resetGame()" class="reset">Reset Game</button></div> -->
 
   <table class="">
     <tbody class="mines-field">
@@ -27,7 +27,7 @@
   <div class="modal hidden">
     <h1></h1>
     <p>
-        Boom! Would you like to play another round? 
+        <span class="gameOver-msg"></span>
         <button onclick="resetGame()" class="start-again">Start Again</button>
     </p>
 </div>
