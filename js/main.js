@@ -39,7 +39,7 @@ function init(level) {
 	showRecords();
 	clearInterval(gGameInterval);
 	document.querySelector('.timer').innerHTML =
-		'Time Passed:<span class="min"></span> <span class="sec"> </span>'; //Should create a new func to clear the int
+		'Time:<span class="min"></span> <span class="sec"> </span>'; //Should create a new func to clear the int
 } //more over, when switching level, timer won't reset- should be fixed.
 
 function buildBoard(level) {
