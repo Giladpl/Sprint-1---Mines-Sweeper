@@ -10,28 +10,59 @@
 </head>
 
 <body onload="init(0)">
-  <div class="level-buttons">
-    <button onclick="init(0)">Easy</button>
-    <button onclick="init(1)">Medium</button>
-    <button onclick="init(2)">Hard</button> 
-  </div>
-  <!-- <div><button onclick="resetGame()" class="reset">Reset Game</button></div> -->
+  <table class="controls">
+    <tr class="level-buttons">
+      <td><button class="btn-grad" onclick="init(0)">Easy</button></td>
+      <td><button class="btn-grad" onclick="init(1)">Medium</button></td>
+      <td><button class="btn-grad" onclick="init(2)">Hard</button></td>
+    </tr>
+    <tr>
+      <td class="timer second-row">Time:<span class="min"></span> <span class="sec"> </span></td>
+      <td></td>
+      <td class="lives second-row">Lives Left: <span></span></td>
+    </tr>
+    <tr> 
+      <td></td>
+      <td><span onclick="resetGame()" class="smiley"></span></td>
+      <td></td>
+    </tr>
+  </table>
 
-  <table class="">
+  <table class="records">
+    <tr>
+      <td>Best Time Easy:</td>
+      <td class="easy-record">No current record</td>
+    </tr>
+    <tr>
+      <td>Best Time Medium:</td>
+      <td class="medium-record">No current record</td>
+    </tr>
+    <tr>
+      <td>Best Time Hard:</td>
+      <td class="hard-record">No current record</td>
+    </tr>
+
+  <table class="board">
     <tbody class="mines-field">
     </tbody>
   </table>
-  <div class="timer">Time Passed:<span class="min"></span> <span class="sec"> </span></div>
 
-  <!-- <button data-i="" data-j="" onclick="leftClickCell(this)"></button> -->
+  <table class="controls">
+    <tr> 
+      <td><button onclick="safeClick()" class="btn-grad">Safe Click: <span class="safe-remaining"></span></button></td>
+      <td><button onclick="getHintMode()" class="btn-grad">🔍🔍🔍<span class="safe-remaining"></span></button></td>
+    </tr>
+  </table>
+
+
   <div class="modal hidden">
     <h1></h1>
     <p>
-        <span class="gameOver-msg"></span>
-        <button onclick="resetGame()" class="start-again">Start Again</button>
+      <span class="gameOver-msg"></span>
+      <button onclick="resetGame()" class="start-again">Start Again</button>
     </p>
-</div>
-<div class="overlay hidden"></div>
+  </div>
+  <div class="overlay hidden"></div>
 
   <script src="js/utils.js"></script>
   <script src="js/main.js"></script>
