@@ -36,11 +36,9 @@ function init(level) {
 	renderBoard(gBoard);
 	disableRightClick();
 	setLivesSmileySafe(gGame.livesLeft);
+	resetTimer();
 	showRecords();
-	clearInterval(gGameInterval);
-	document.querySelector('.timer').innerHTML =
-		'Time:<span class="min"></span> <span class="sec"> </span>'; //Should create a new func to clear the int
-} //more over, when switching level, timer won't reset- should be fixed.
+}
 
 function buildBoard(level) {
 	var playBoard = [];
@@ -158,7 +156,7 @@ function cellClicked(elCell, event, i, j) {
 			setLivesSmileySafe(--gGame.livesLeft);
 			if (gGame.livesLeft) return;
 			gGame.isOn = false;
-			setTimeout(gameOver, 2000, 0);
+			setTimeout(gameOver, 2000, 1);
 		} else {
 			// Cell is not a mine- can be revealed
 			elCell.innerText =
@@ -168,7 +166,7 @@ function cellClicked(elCell, event, i, j) {
 			elCell.classList.add('revealed');
 			gGame.shownCount++;
 			if (currCell.minesAroundCount === 0) expandShown(gBoard, i, j); //check the negs if able to also reveal them0 only first layer for now
-			checkGameOver();
+			checkGameOver(1);
 		}
 	}
 }
@@ -206,9 +204,13 @@ function disableRightClick() {
 		false
 	);
 }
+function resetTimer() {
+	clearInterval(gGameInterval);
+	document.querySelector('.timer').innerHTML =
+		'Time:<span class="min"></span> <span class="sec"> </span>';
+}
 
 function resetGame() {
-	clearInterval(gGameInterval);
 	gGame.hintsLeft = 3;
 	gGame.minesMissed = 0;
 	gGame.secsPassed = 0;
@@ -219,8 +221,7 @@ function resetGame() {
 		'.safe-remaining'
 	).innerText = `${gGame.safeClickLeft}`;
 	gIsFirst = true;
-	document.querySelector('.timer').innerHTML =
-		'Time Passed:<span class="min"></span> <span class="sec"> </span>';
+	resetTimer();
 	init(gLevelPlayed);
 	document.querySelector('.modal').classList.add('hidden');
 	document.querySelector('.overlay').classList.add('hidden');
@@ -322,16 +323,24 @@ function getHintMode() {
 }
 
 function gameOver(reason) {
-	console.log('inside gameOver');
-
 	var elSpan = document.querySelector('.gameOver-msg');
-	if (!reason)
-		elSpan.innerText = `Damn, you stepped on a 💩! Would you like to play another round?`;
-	else saveRecord();
-	elSpan.innerText = `Good job, you've made it! 🎉 Maybe try the harder version?`;
 	document.querySelector('.modal').classList.remove('hidden');
 	document.querySelector('.overlay').classList.remove('hidden');
 	clearInterval(gGameInterval);
+	if (reason)
+		elSpan.innerText = `Damn, you stepped on a 💩! Would you like to play another round?`;
+	else {
+		saveRecord();
+		elSpan.innerText = `Good job, you've made it! 🎉 Maybe try the harder version?`;
+	}
+}
+function checkGameOver() {
+	if (
+		gGame.flaggedCount + gGame.minesMissed === gLevel[gLevelPlayed].MINES &&
+		gLevel[gLevelPlayed].SIZE ** 2 - gLevel[gLevelPlayed].MINES ===
+			gGame.shownCount
+	)
+		setTimeout(gameOver, 2000);
 }
 
 function saveRecord() {
@@ -346,29 +355,12 @@ function saveRecord() {
 		localStorage.setItem(`${currentLvl}`, gGame.secsPassed);
 }
 
-function showRecords() { //to fix - should show the time not only as seconds but as 00:00
+function showRecords() {
+	//to fix - should show the time not only as seconds but as 00:00
 	var easyRec = localStorage.getItem(`Easy`);
 	document.querySelector('.easy-record').innerText = easyRec;
 	var MediumRec = localStorage.getItem(`Medium`);
 	document.querySelector('.medium-record').innerText = MediumRec;
 	var HardRec = localStorage.getItem(`Hard`);
 	document.querySelector('.hard-record').innerText = HardRec;
-}
-
-function checkGameOver() {
-	if (
-		gGame.flaggedCount + gGame.minesMissed === gLevel[gLevelPlayed].MINES &&
-		gLevel[gLevelPlayed].SIZE ** 2 - gLevel[gLevelPlayed].MINES ===
-			gGame.shownCount
-	)
-		setTimeout(gameOver, 2000, 1);
-
-	// 	return;
-	// else if (
-	// 	gGame.flaggedCount === gLevel[gLevelPlayed].MINES &&
-	// 	Math.pow(gLevel[gLevelPlayed].SIZE, 2) - gLevel[gLevelPlayed].MINES ===
-	// 		gGame.shownCount
-	// )
-	// 	gameOver(1);
-	// else gameOver();
 }
