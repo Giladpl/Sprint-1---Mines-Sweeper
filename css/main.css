@@ -184,7 +184,8 @@ padding: 10px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 70%;
+		width: 60%;
+		height: 50%;
     background-color: rgb(45, 69, 204);
     padding: 6rem;
     border-radius: 5px;
@@ -205,7 +206,9 @@ padding: 10px;
 
 .modal p,
 .modal h1 {
-    text-align: center;
+		text-align: center;
+		font-size: 25px;
+		color: whitesmoke;
 }
 
 .records-table{

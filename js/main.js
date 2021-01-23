@@ -372,7 +372,7 @@ function gameOver(reason) {
 		elSpan.innerText = `Damn, you stepped on a 💩! Would you like to play another round?`;
 	else {
 		saveRecord();
-		elSpan.innerText = `Good job, you've made it! 🎉 Maybe try the harder version?`;
+		elSpan.innerText = `Good job, you've made it! 🎉 Maybe try a harder level?`;
 	}
 	resetGame;
 }
