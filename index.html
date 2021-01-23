@@ -18,12 +18,12 @@
     </tr>
     <tr>
       <td class="timer second-row">Time:<span class="min"></span> <span class="sec"> </span></td>
-      <td></td>
+      <td class="btn-grad" onclick="goManual(this)">Manual</td>
       <td class="lives second-row">Lives Left: <span></span></td>
     </tr>
     <tr>
-      <td></td>
-      <td><span onclick="resetGame()" class="smiley"></span></td>
+      <td class="mines-left"></td>
+      <td class="td-smile"><span onclick="resetGame()" class="smiley"></span></td>
       <td></td>
     </tr>
   </table>
@@ -37,9 +37,9 @@
 
   <table class="controls">
     <tr>
-      <td><button onclick="safeClick()" class="btn-grad btn-lower">Safe Click: <span
+      <td><button onclick="safeClick()" class="btn-lower">Safe Click: <span
             class="safe-remaining"></span></button></td>
-      <td><button onclick="goHintMode()" class="btn-grad btn-lower">Hints: <span class="hint-remaining"></span></button>
+      <td><button onclick="goHintMode()" class="btn-lower">Hints: <span class="hint-remaining"></span></button>
       </td>
     </tr>
   </table>
@@ -67,7 +67,10 @@
     <h1></h1>
     <p>
       <span class="gameOver-msg"></span>
-      <button onclick="resetGame()" class="start-again">Start Again</button>
+      <br>
+      <button onclick="resetGame()" class="modal-btns">Start Again</button>
+      <button onclick="closeModal()" class="modal-btns">I'm done</button>
+      
     </p>
   </div>
   <div class="overlay hidden"></div>

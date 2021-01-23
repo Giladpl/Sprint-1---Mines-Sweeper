@@ -9,9 +9,9 @@ const LIVES = '❤️';
 var gBoard;
 var gFirstClick = true;
 var gHintMode = false;
-var gSeconds = 0;
 var gLevelPlayed;
 var gGameInterval;
+var gToggleManual = false;
 var gLevel = [
 	{ SIZE: 4, MINES: 2 },
 	{ SIZE: 8, MINES: 12 },
@@ -27,9 +27,11 @@ var gGame = {
 	hintsLeft: 3,
 	minesMissed: 0,
 	manualMode: false,
+	minesNumManual: 0,
 };
 
 function init(level) {
+	if (gGame.manualMode) cancelManual();
 	gLevelPlayed = level;
 	gBoard = buildBoard(gLevelPlayed);
 	setRandomMines(gBoard, gLevelPlayed);
@@ -162,7 +164,7 @@ function cellClicked(elCell, event, i, j) {
 	if (!gGame.isOn) return;
 	if (currCell.isShown) return;
 	if (gGame.manualMode) {
-		manualMinePos(elCell, i, j);
+		manualMinePlacement(i, j, elCell);
 		return;
 	}
 
@@ -236,6 +238,7 @@ function resetGameModel() {
 	gGame.flaggedCount = 0;
 	gGame.shownCount = 0;
 	gGame.isOn = true;
+
 	resetTimer();
 }
 
@@ -246,8 +249,10 @@ function resetGame() {
 		'.safe-remaining'
 	).innerText = `${gGame.safeClickLeft}`;
 	init(gLevelPlayed);
-	document.querySelector('.modal').classList.add('hidden');
-	document.querySelector('.overlay').classList.add('hidden');
+	closeModal();
+	gGame.minesNumManual = 0;
+	gGame.manualMode = false;
+	
 }
 //Still need to work on- violating DRY principle
 function expandShown(board, rowIdx, colIdx) {
@@ -375,7 +380,8 @@ function gameOver(reason) {
 	clearInterval(gGameInterval);
 	if (reason)
 		elSpan.innerText = `Damn, you stepped on a 💩! Would you like to play another round?`;
-	else if(gGame.minesMissed) elSpan.innerText = `Good job! 🎉 Although you've got some 💩 on your shoe!`;
+	else if (gGame.minesMissed)
+		elSpan.innerText = `Good job! 🎉 Although you've got some 💩 on your shoe!`;
 	else {
 		saveRecord();
 		elSpan.innerText = `Good job, you've made it perfectly! 🎉 Maybe try a harder level?`;
@@ -383,12 +389,14 @@ function gameOver(reason) {
 }
 
 function checkGameOver() {
-	console.log('inside gameOver');
-
 	if (
-		gGame.flaggedCount + gGame.minesMissed === gLevel[gLevelPlayed].MINES &&
-		gLevel[gLevelPlayed].SIZE ** 2 - gLevel[gLevelPlayed].MINES ===
-			gGame.shownCount
+		(gGame.flaggedCount + gGame.minesMissed ===
+			gLevel[gLevelPlayed].MINES &&
+			gLevel[gLevelPlayed].SIZE ** 2 - gLevel[gLevelPlayed].MINES ===
+				gGame.shownCount) ||
+		(gGame.flaggedCount + gGame.minesMissed === gGame.minesNumManual &&
+			gLevel[gLevelPlayed].SIZE ** 2 - gGame.minesNumManual ===
+				gGame.shownCount)
 	) {
 		document.querySelector('.smiley').innerText = '😎';
 		setTimeout(gameOver, 2000);
@@ -456,13 +464,43 @@ function getEmptyCells(board) {
 	return emptyCells;
 }
 
-// function manualMinePos(_, _, iPos, jPos) {
-// 	gGame.manualMode = true;
+function goManual(elBtnManual) {
+	elBtnManual.classList.toggle('go-manual');
+	elBtnManual.innerText = 'Begin';
+	resetTimer();
+	resetGameModel();
+	setBtnsParameters();
+	renderBoard(gBoard);
+	if (elBtnManual.classList.contains('go-manual')) {
+		gGame.manualMode = true;
+		gBoard = buildBoard(gLevelPlayed);
+	} else {
+		gGame.manualMode = false;
+		setMinesNegsCount(gBoard);
+		renderBoard(gBoard);
+		elBtnManual.innerText = 'Manual';
+	}
+}
 
-// 	var mineNum = +prompt('How many mines would you like to position?');
-// 	for (var i = 0; i < mineNum; i++) {
-// 		alert(`Click a cell to position mine number ${i + 1}`);
-// 		var currCell = gBoard[iPos][jPos];
-// 	}
-// 	gGame.manualMode = false;
-// }
+function manualMinePlacement(i, j, elCell) {
+	gBoard[i][j].isMine = true;
+	elCell.innerText = MINE;
+	gGame.minesNumManual++;
+}
+
+function cancelManual() {
+	resetGameModel();
+	setBtnsParameters();
+	gGame.minesNumManual = 0;
+	gGame.manualMode = false;
+	var elManual = document.querySelector('.btn-grad');
+	if (elManual.classList.contains('go-manual')) {
+		elManual.classList.remove('go-manual');
+	}
+	elManual.innerText = 'Manual';
+}
+
+function closeModal() {
+	document.querySelector('.modal').classList.add('hidden');
+	document.querySelector('.overlay').classList.add('hidden');
+}
