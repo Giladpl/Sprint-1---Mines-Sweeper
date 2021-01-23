@@ -383,9 +383,9 @@ function gameOver(reason) {
 	else if (gGame.minesMissed)
 		elSpan.innerText = `Good job! 🎉 Although you've got some 💩 on your shoe!`;
 	else {
-		saveRecord();
 		elSpan.innerText = `Good job, you've made it perfectly! 🎉 Maybe try a harder level?`;
 	}
+	saveRecord();
 }
 
 function checkGameOver() {
