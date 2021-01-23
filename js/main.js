@@ -158,7 +158,7 @@ function disableRightClick() {
 		false
 	);
 }
-
+//two long of a function- I should divide it to several sub-function and this function should call each one.
 function cellClicked(elCell, event, i, j) {
 	var currCell = gBoard[i][j];
 	if (!gGame.isOn) return;
@@ -252,7 +252,6 @@ function resetGame() {
 	closeModal();
 	gGame.minesNumManual = 0;
 	gGame.manualMode = false;
-	
 }
 //Still need to work on- violating DRY principle
 function expandShown(board, rowIdx, colIdx) {
@@ -416,19 +415,25 @@ function saveRecord() {
 	var currRecord = +localStorage.getItem(`${currentLvl}`);
 
 	if (currRecord > gGame.secsPassed || !currRecord)
-		localStorage.setItem(`${currentLvl}`, `${finalTime}`);
+		localStorage.setItem(`${currentLvl}`, gGame.secsPassed);
 }
 
+
 function showRecords() {
-	document.querySelector('.easy-record').innerText = localStorage.getItem(
-		`Easy`
-	);
-	document.querySelector('.medium-record').innerText = localStorage.getItem(
-		`Medium`
-	);
-	document.querySelector('.hard-record').innerText = localStorage.getItem(
-		`Hard`
-	);
+	var recordEasy = localStorage.getItem(`Easy`);
+	var recordEasyMin = padTime(Math.floor(recordEasy / 60))
+	var recordEasySec = padTime(recordEasy- recordEasyMin * 60)
+	var recordMedium = localStorage.getItem(`Medium`);
+	var recordMediumMin = padTime(Math.floor(recordMedium / 60))
+	var recordMediumSec = padTime(recordMedium- recordMediumMin * 60)
+	var recordHard = localStorage.getItem(`Hard`);
+	var recordHardMin = padTime(Math.floor(recordHard / 60))
+	var recordHardSec = padTime(recordHard- recordHardMin * 60)
+
+	document.querySelector('.easy-record').innerText = `${recordEasyMin}:${recordEasySec}`;
+	document.querySelector('.medium-record').innerText = `${recordMediumMin}:${recordMediumSec}`;
+	document.querySelector('.hard-record').innerText = `${recordHardMin}:${recordHardSec}`;
+	
 
 	var elRecords = document.querySelectorAll('.rec-time');
 	for (var i = 0; i < elRecords.length; i++) {
