@@ -26,6 +26,7 @@ var gGame = {
 	safeClickLeft: 3,
 	hintsLeft: 3,
 	minesMissed: 0,
+	manualMode: false,
 };
 
 function init(level) {
@@ -160,6 +161,10 @@ function cellClicked(elCell, event, i, j) {
 	var currCell = gBoard[i][j];
 	if (!gGame.isOn) return;
 	if (currCell.isShown) return;
+	if (gGame.manualMode) {
+		manualMinePos(elCell, i, j);
+		return;
+	}
 
 	if (gHintMode && gGame.hintsLeft >= 0) {
 		//Hint Mode
@@ -370,11 +375,11 @@ function gameOver(reason) {
 	clearInterval(gGameInterval);
 	if (reason)
 		elSpan.innerText = `Damn, you stepped on a 💩! Would you like to play another round?`;
+	else if(gGame.minesMissed) elSpan.innerText = `Good job! 🎉 Although you've got some 💩 on your shoe!`;
 	else {
 		saveRecord();
-		elSpan.innerText = `Good job, you've made it! 🎉 Maybe try a harder level?`;
+		elSpan.innerText = `Good job, you've made it perfectly! 🎉 Maybe try a harder level?`;
 	}
-	resetGame;
 }
 
 function checkGameOver() {
@@ -451,12 +456,13 @@ function getEmptyCells(board) {
 	return emptyCells;
 }
 
-// function manualMinePos(_,_, iPos, jPos){
-// 	var mineNum = +prompt('How many mines would you like to position?')
-// 	alert(`Let's start positioning those`);
+// function manualMinePos(_, _, iPos, jPos) {
+// 	gGame.manualMode = true;
 
-// 	for(var i = 0; i < mineNum; i++){
-// 	var currCell = gBoard[iPos][jPos]
-// 	console.log(currCell);
+// 	var mineNum = +prompt('How many mines would you like to position?');
+// 	for (var i = 0; i < mineNum; i++) {
+// 		alert(`Click a cell to position mine number ${i + 1}`);
+// 		var currCell = gBoard[iPos][jPos];
 // 	}
+// 	gGame.manualMode = false;
 // }
