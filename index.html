@@ -21,26 +21,14 @@
       <td></td>
       <td class="lives second-row">Lives Left: <span></span></td>
     </tr>
-    <tr> 
+    <tr>
       <td></td>
       <td><span onclick="resetGame()" class="smiley"></span></td>
       <td></td>
     </tr>
   </table>
 
-  <table class="records">
-    <tr>
-      <td>Best Time Easy:</td>
-      <td class="easy-record">No current record</td>
-    </tr>
-    <tr>
-      <td>Best Time Medium:</td>
-      <td class="medium-record">No current record</td>
-    </tr>
-    <tr>
-      <td>Best Time Hard:</td>
-      <td class="hard-record">No current record</td>
-    </tr>
+
 
   <table class="board">
     <tbody class="mines-field">
@@ -48,9 +36,29 @@
   </table>
 
   <table class="controls">
-    <tr> 
-      <td><button onclick="safeClick()" class="btn-grad">Safe Click: <span class="safe-remaining"></span></button></td>
-      <td><button onclick="getHintMode()" class="btn-grad">🔍🔍🔍<span class="safe-remaining"></span></button></td>
+    <tr>
+      <td><button onclick="safeClick()" class="btn-grad btn-lower">Safe Click: <span
+            class="safe-remaining"></span></button></td>
+      <td><button onclick="goHintMode()" class="btn-grad btn-lower">Hints: <span class="hint-remaining"></span></button>
+      </td>
+    </tr>
+  </table>
+
+  <table class="records-table">
+    <tr>
+      <th colspan="2" class="rec-header">Best Times:</th>
+    </tr>
+    <tr>
+      <td class="record">Easy:</td>
+      <td class="rec-time easy-record"></td>
+    </tr>
+    <tr>
+      <td class="record">Medium:</td>
+      <td class="rec-time medium-record"></td>
+    </tr>
+    <tr>
+      <td class="record">Hard:</td>
+      <td class="rec-time hard-record"></td>
     </tr>
   </table>
 

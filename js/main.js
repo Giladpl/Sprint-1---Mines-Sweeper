@@ -7,7 +7,7 @@ const EMPTY = ' ';
 const LIVES = '❤️';
 
 var gBoard;
-var gIsFirst = true;
+var gFirstClick = true;
 var gHintMode = false;
 var gSeconds = 0;
 var gLevelPlayed;
@@ -35,9 +35,10 @@ function init(level) {
 	setMinesNegsCount(gBoard);
 	renderBoard(gBoard);
 	disableRightClick();
-	setLivesSmileySafe(gGame.livesLeft);
 	resetTimer();
 	showRecords();
+	resetGameModel();
+	setBtnsParameters();
 }
 
 function buildBoard(level) {
@@ -110,71 +111,31 @@ function checkMinesNegsCount(board, rowIdx, colIdx) {
 	}
 	return { negCount, posNegMines };
 }
-
+//Wrote in the util file another option- setOneMineLocation combined with a shorter setRandomMines.
+//Still need to decide which way is better.
 function setRandomMines(board, level) {
 	var minesLocations = [];
 	var size = gLevel[level].SIZE;
 	var minesNum = gLevel[level].MINES;
-	for (var i = 0; i < minesNum; i++) {
+	while (minesLocations.length !== minesNum) {
 		var iPos = getRandomIntInclusive(0, size - 1);
 		var jPos = getRandomIntInclusive(0, size - 1);
-		minesLocations.push({ iPos, jPos });
-		board[iPos][jPos].isMine = true;
+		var currCell = board[iPos][jPos];
+		if (!currCell.isMine) {
+			currCell.isMine = true;
+			minesLocations.push({ iPos, jPos });
+		}
 	}
 	return minesLocations;
 }
 
-function cellClicked(elCell, event, i, j) {
-	var currCell = gBoard[i][j];
-	if (!gGame.isOn) return;
-
-	if (gHintMode) {
-		expandShown(gBoard, i, j);
-		document.querySelector('.board').style.cursor = 'default';
-		gHintMode = false;
-		return;
-	}
-
-	if (gIsFirst) {
-		gGameInterval = setInterval(setTime, 1000);
-		gIsFirst = !gIsFirst;
-	}
-
-	if (currCell.isShown) return;
-
-	if (event.button === 2 && !currCell.isShown) {
-		//right mouse clicked
-		cellMarked(elCell, currCell); //mark with flag
-		checkGameOver();
-	} else {
-		//left mouse clicked
-		currCell.isShown = true;
-		if (currCell.isMine) {
-			//stepped on a mine
-			gGame.minesMissed++;
-			elCell.innerText = MINE;
-			setLivesSmileySafe(--gGame.livesLeft);
-			if (gGame.livesLeft) return;
-			gGame.isOn = false;
-			setTimeout(gameOver, 2000, 1);
-		} else {
-			// Cell is not a mine- can be revealed
-			elCell.innerText =
-				currCell.minesAroundCount === 0
-					? EMPTY
-					: currCell.minesAroundCount;
-			elCell.classList.add('revealed');
-			gGame.shownCount++;
-			if (currCell.minesAroundCount === 0) expandShown(gBoard, i, j); //check the negs if able to also reveal them0 only first layer for now
-			checkGameOver(1);
-		}
-	}
-}
 function cellMarked(elCell, currCell) {
 	elCell.classList.toggle('flagged');
+	if (currCell.isMine) {
+		currCell.isMarked ? gGame.flaggedCount-- : gGame.flaggedCount++;
+	}
 	currCell.isMarked = !currCell.isMarked;
 	elCell.innerText = currCell.isMarked ? FLAG : EMPTY;
-	if (currCell.isMine) gGame.flaggedCount++; //BUG- flagging and unflagging of a mined cell would result in a problem with gameover.
 }
 
 function setTime() {
@@ -183,16 +144,6 @@ function setTime() {
 	document.querySelector('.min').innerText = ` ${padTime(
 		parseInt(gGame.secsPassed / 60)
 	)} :`;
-}
-
-function padTime(val) {
-	//add to the set time func
-	var valString = val + '';
-	if (valString.length < 2) {
-		return '0' + valString;
-	} else {
-		return valString;
-	}
 }
 
 function disableRightClick() {
@@ -204,35 +155,98 @@ function disableRightClick() {
 		false
 	);
 }
+
+function cellClicked(elCell, event, i, j) {
+	var currCell = gBoard[i][j];
+	if (!gGame.isOn) return;
+	if (currCell.isShown) return;
+
+	if (gHintMode && gGame.hintsLeft >= 0) {
+		//Hint Mode
+		expandHintMode(gBoard, i, j);
+		document.querySelector('.board').style.cursor = 'default';
+		gHintMode = false;
+		return;
+	}
+	if (event.buttons === 1) {
+		// Left clicked
+		currCell.isShown = true;
+		if (!gGame.shownCount) {
+			//If first click of the game
+			gGameInterval = setInterval(setTime, 1000);
+			if (currCell.isMine) {
+				// Model of the previously positioned mine
+				currCell.isMine = false;
+				//Model of the new non-mined cell
+				var emptyPos = findEmptyPos();
+				gBoard[emptyPos.i][emptyPos.j].isMine = true;
+				// Adjust the counts of negs onboard
+				setMinesNegsCount(gBoard);
+				renderBoard(gBoard);
+				elCell = document.querySelector(
+					`[data-i="${i}"][data-j="${j}"]`
+				);
+			}
+		}
+		if (!currCell.isMine) {
+			//Not a mine
+			elCell.innerText =
+				currCell.minesAroundCount === 0
+					? EMPTY
+					: currCell.minesAroundCount;
+			elCell.classList.add('revealed');
+			gGame.shownCount++;
+			if (currCell.minesAroundCount === 0) expandShown(gBoard, i, j); //check the negs if able to also reveal them0 only first layer for now
+		} else if (currCell.isMine && gGame.shownCount) {
+			//on mine- non first click in game
+			gGame.minesMissed++;
+			elCell.innerText = MINE;
+			--gGame.livesLeft;
+			setBtnsParameters();
+			if (!gGame.livesLeft) {
+				gGame.isOn = false;
+				revealAllMines(gBoard);
+				setTimeout(gameOver, 1000, 1);
+			}
+		}
+	} else if (event.button === 2 && !currCell.isShown) {
+		// Right click on the mouse
+		cellMarked(elCell, currCell); //mark with flag
+	}
+	checkGameOver();
+}
+
 function resetTimer() {
 	clearInterval(gGameInterval);
 	document.querySelector('.timer').innerHTML =
 		'Time:<span class="min"></span> <span class="sec"> </span>';
 }
 
-function resetGame() {
+function resetGameModel() {
 	gGame.hintsLeft = 3;
 	gGame.minesMissed = 0;
 	gGame.secsPassed = 0;
 	gGame.livesLeft = 3;
 	gGame.safeClickLeft = 3;
 	gGame.flaggedCount = 0;
+	gGame.shownCount = 0;
+	gGame.isOn = true;
+	resetTimer();
+}
+
+function resetGame() {
+	resetGameModel();
+	setBtnsParameters();
 	document.querySelector(
 		'.safe-remaining'
 	).innerText = `${gGame.safeClickLeft}`;
-	gIsFirst = true;
-	resetTimer();
 	init(gLevelPlayed);
 	document.querySelector('.modal').classList.add('hidden');
 	document.querySelector('.overlay').classList.add('hidden');
-	gGame.shownCount = 0;
-	gGame.isOn = true;
 }
-//Still need to work on- violating DRY principle big time
+//Still need to work on- violating DRY principle
 function expandShown(board, rowIdx, colIdx) {
-	//Bug with the way it reveals.
 	var currCell = board[rowIdx][colIdx];
-	// if (!currCell.minesAroundCount &&  !gHintMode)
 	for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
 		if (i < 0 || i > board.length - 1) continue;
 		for (var j = colIdx - 1; j <= colIdx + 1; j++) {
@@ -247,34 +261,26 @@ function expandShown(board, rowIdx, colIdx) {
 			var elNegCell = document.querySelector(
 				`[data-i="${i}"][data-j="${j}"]`
 			);
-			// console.log(elNegCell);
 			elNegCell.classList.add('revealed');
 			elNegCell.innerText =
 				currCell.minesAroundCount === 0
 					? EMPTY
 					: currCell.minesAroundCount;
-			checkGameOver();
+			if (currCell.minesAroundCount === 0) expandShown(board, i, j); //Recursion in order to open up more than one layer if possible
 
-			if (gHintMode) {
-				setTimeout(function () {
-					gGame.shownCount--;
-					currCell.isShown = false;
-					elNegCell.classList.remove('revealed');
-					elNegCell.innerText = EMPTY;
-				}, 1500);
-			}
+			checkGameOver();
 		}
 	}
 }
 
-function setLivesSmileySafe(lives) {
+function setBtnsParameters() {
 	document.querySelector(
 		'.safe-remaining'
 	).innerText = `${gGame.safeClickLeft}`;
 	var elLives = document.querySelector('.lives');
 	var elSmiley = document.querySelector('.smiley');
 
-	if (gGame.livesLeft) elLives.innerText = LIVES.repeat(lives);
+	if (gGame.livesLeft) elLives.innerText = LIVES.repeat(gGame.livesLeft);
 	else elLives.innerText = 'You are dead ⚰️';
 
 	if (gGame.livesLeft === 3) elSmiley.innerText = '😁';
@@ -282,7 +288,9 @@ function setLivesSmileySafe(lives) {
 	else if (gGame.livesLeft === 1) elSmiley.innerText = '😏';
 	else elSmiley.innerText = '🤯';
 
-	// document.querySelector('.messages').innerText = `Shit! You should be more careful!`
+	document.querySelector('.hint-remaining').innerText = '🔎'.repeat(
+		gGame.hintsLeft
+	);
 }
 
 function safeClick() {
@@ -305,20 +313,53 @@ function safeClick() {
 	}, 1000);
 }
 
-function getEmptyCells(board) {
-	var emptyCells = [];
-	for (var i = 0; i < board.length; i++) {
-		for (var j = 0; j < board[0].length; j++) {
-			var cell = board[i][j];
-			if (!cell.isMine && !cell.isShown) emptyCells.push({ i, j });
+function expandHintMode(board, rowIdx, colIdx) {
+	var currCell = board[rowIdx][colIdx];
+	for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
+		if (i < 0 || i > board.length - 1) continue;
+		for (var j = colIdx - 1; j <= colIdx + 1; j++) {
+			var currCell = board[i][j];
+			if (j < 0 || j > board[0].length - 1) continue;
+			if (currCell.isShown) continue;
+
+			var elNegCell = document.querySelector(
+				`[data-i="${i}"][data-j="${j}"]`
+			);
+			elNegCell.classList.add('hint');
+
+			if (currCell.minesAroundCount === 0) {
+				elNegCell.innerText = EMPTY;
+			}
+			if (currCell.minesAroundCount > 0) {
+				elNegCell.innerText = currCell.minesAroundCount;
+			}
+			if (currCell.isMine) {
+				elNegCell.innerText = MINE;
+			}
+			setTimeout(hideHint, 1500, elNegCell, currCell);
 		}
 	}
-	return emptyCells;
 }
 
-function getHintMode() {
+function hideHint(elNegCell, currCell) {
+	elNegCell.classList.remove('hint');
+	if (currCell.isMine) {
+		elNegCell.innerText = EMPTY;
+	}
+	if (currCell.minesAroundCount > 0) {
+		elNegCell.innerText = EMPTY;
+	}
+	if (currCell.isMarked) {
+		elNegCell.innerText = FLAG;
+	}
+}
+
+function goHintMode() {
 	gHintMode = true;
 	if (gGame.hintsLeft > 0) gGame.hintsLeft--;
+	document.querySelector('.hint-remaining').innerText = '🔎'.repeat(
+		gGame.hintsLeft
+	);
 	document.querySelector('.board').style.cursor = 'zoom-in';
 }
 
@@ -333,18 +374,28 @@ function gameOver(reason) {
 		saveRecord();
 		elSpan.innerText = `Good job, you've made it! 🎉 Maybe try the harder version?`;
 	}
+	resetGame;
 }
+
 function checkGameOver() {
+	console.log('inside gameOver');
+
 	if (
 		gGame.flaggedCount + gGame.minesMissed === gLevel[gLevelPlayed].MINES &&
 		gLevel[gLevelPlayed].SIZE ** 2 - gLevel[gLevelPlayed].MINES ===
 			gGame.shownCount
-	)
+	) {
+		document.querySelector('.smiley').innerText = '😎';
 		setTimeout(gameOver, 2000);
+	}
 }
 
 function saveRecord() {
 	var currentLvl;
+	var minutes = padTime(Math.floor(gGame.secsPassed / 60));
+	var seconds = padTime(gGame.secsPassed - minutes * 60);
+	var finalTime = `${minutes}:${seconds}`;
+
 	if (gLevelPlayed === 0) currentLvl = 'Easy';
 	else if (gLevelPlayed === 1) currentLvl = 'Medium';
 	else currentLvl = 'Hard';
@@ -352,15 +403,60 @@ function saveRecord() {
 	var currRecord = +localStorage.getItem(`${currentLvl}`);
 
 	if (currRecord > gGame.secsPassed || !currRecord)
-		localStorage.setItem(`${currentLvl}`, gGame.secsPassed);
+		localStorage.setItem(`${currentLvl}`, `${finalTime}`);
 }
 
 function showRecords() {
-	//to fix - should show the time not only as seconds but as 00:00
-	var easyRec = localStorage.getItem(`Easy`);
-	document.querySelector('.easy-record').innerText = easyRec;
-	var MediumRec = localStorage.getItem(`Medium`);
-	document.querySelector('.medium-record').innerText = MediumRec;
-	var HardRec = localStorage.getItem(`Hard`);
-	document.querySelector('.hard-record').innerText = HardRec;
+	document.querySelector('.easy-record').innerText = localStorage.getItem(
+		`Easy`
+	);
+	document.querySelector('.medium-record').innerText = localStorage.getItem(
+		`Medium`
+	);
+	document.querySelector('.hard-record').innerText = localStorage.getItem(
+		`Hard`
+	);
+
+	var elRecords = document.querySelectorAll('.rec-time');
+	for (var i = 0; i < elRecords.length; i++) {
+		if (!elRecords[i].innerText)
+			elRecords[i].innerText = 'No current record';
+	}
 }
+
+function revealAllMines(board) {
+	for (var i = 0; i < board.length; i++) {
+		for (var j = 0; j < board[0].length; j++) {
+			var currCell = board[i][j];
+			var elNegCell = document.querySelector(
+				`[data-i="${i}"][data-j="${j}"]`
+			);
+			if (currCell.isMine) {
+				currCell.isShown;
+				elNegCell.innerText = MINE;
+				elNegCell.classList.add('.revealed');
+			}
+		}
+	}
+}
+//DRY- revealAllMines and getEmptyCells can and should be combined into one util functions
+function getEmptyCells(board) {
+	var emptyCells = [];
+	for (var i = 0; i < board.length; i++) {
+		for (var j = 0; j < board[0].length; j++) {
+			var cell = board[i][j];
+			if (!cell.isMine && !cell.isShown) emptyCells.push({ i, j });
+		}
+	}
+	return emptyCells;
+}
+
+// function manualMinePos(_,_, iPos, jPos){
+// 	var mineNum = +prompt('How many mines would you like to position?')
+// 	alert(`Let's start positioning those`);
+
+// 	for(var i = 0; i < mineNum; i++){
+// 	var currCell = gBoard[iPos][jPos]
+// 	console.log(currCell);
+// 	}
+// }
